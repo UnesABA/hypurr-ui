@@ -9,11 +9,9 @@ function App() {
     <div className="bg-body-bg text-white">
       <Header />
       <SearchBar />
-      <div className="flex flex-col justify-between">
+      <div className="flex flex-col justify-between gap-2">
         <Overview />
-        <main className="container mx-10 px-4 py-4">
-          <TransactionTable />
-        </main>
+        <TransactionTable />
       </div>
     </div>
   );

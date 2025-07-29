@@ -38,7 +38,7 @@ const TransactionTable = () => {
   };
 
   return (
-    <div className="bg-[#1e2d29] rounded-xl shadow-lg overflow-hidden">
+    <div className="bg-[#1e2d29] rounded-xl shadow-lg overflow-hidden mx-12 px-4 py-4">
       {/* Tab Navigation */}
       <div className="bg-header-bg">
         <nav className="flex space-x-0">
