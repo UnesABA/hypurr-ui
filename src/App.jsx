@@ -6,7 +6,7 @@ import TransactionTable from "./components/TransactionTable";
 
 function App() {
   return (
-    <div className="min-h-screen bg-body-bg text-white">
+    <div className="bg-body-bg text-white">
       <Header />
       <SearchBar />
       <div className="flex flex-col justify-between">
