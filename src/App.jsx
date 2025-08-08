@@ -9,7 +9,7 @@ function App() {
     <div className="bg-body-bg text-white">
       <Header />
       <SearchBar />
-      <div className="flex flex-col justify-between gap-2">
+      <div className="flex flex-col justify-between ">
         <Overview />
         <TransactionTable />
       </div>
