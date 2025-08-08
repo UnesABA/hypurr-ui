@@ -1,93 +1,95 @@
+import { useEffect, useState } from "react";
+
 const PositionsCard = () => {
+  const [positions, setPositions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const walletAddress = "0xc513fbdfdcb114719753f0950e2352a0e194e9ae";
+
+  useEffect(() => {
+    const fetchPositions = async () => {
+      try {
+        const response = await fetch("https://api.hyperliquid.xyz/info", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "clearinghouseState",
+            user: walletAddress,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data && data.assetPositions) {
+          const positionsData = data.assetPositions.map((position) => {
+            const szi = parseFloat(position.position.szi);
+            const isLong = szi > 0;
+            
+            return {
+              token: position.position.coin,
+              side: isLong ? "LONG" : "SHORT",
+              isLong: isLong,
+              pair: `${position.position.coin}-USD`
+            };
+          });
+          
+          setPositions(positionsData);
+        }
+      } catch (error) {
+        console.error("Error fetching positions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPositions();
+  }, []);
+
   return (
-    <div className="bg-[#1e2d29] p-2 rounded-[10px] h-[85px]">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-white text-sm font-medium">Positions</h3>
+    <div className="bg-[#1e2d29] p-4 rounded-[10px]">
+      <div className="mb-3">
+        <h3 className="text-white text-base font-medium">Positions</h3>
       </div>
 
-      {/* Position Bars */}
+      {/* Position Cards */}
       <div className="space-y-2">
-        <div className="flex h-8">
-          {/* First wide red block with BTC-USD */}
-          <div className="relative flex-[10] bg-red-500 rounded-[1px] hover:-translate-y-[2px] transition-transform duration-200 ease-out">
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white whitespace-nowrap scale-[0.9]">
-              BTC-USD
-            </span>
-          </div>
-
-          {/* Second wide red block with ETH-USD */}
-          <div className="relative flex-[10] bg-red-500 rounded-[1px] hover:-translate-y-[2px] transition-transform duration-200 ease-out">
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white whitespace-nowrap scale-[0.9]">
-              ETH-USD
-            </span>
-          </div>
-
-          {/* Rest of small bars - equal narrow width */}
-          {[
-            "red-500",
-            "red-500",
-            "red-500",
-            "green-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "green-500",
-            "red-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "green-500",
-            "red-500",
-            "red-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "green-500",
-            "green-500",
-            "red-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-            "green-500",
-            "red-500",
-          ].map((color, index) => (
-            <div
-              key={index}
-              className={`flex-1 bg-${color} w-[2px] rounded-[1px] hover:-translate-y-[2px] transition-transform duration-200 ease-out`}
-            ></div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-gray-400 text-sm">Loading positions...</div>
+        ) : positions.length === 0 ? (
+          <div className="text-gray-400 text-sm">No positions available</div>
+        ) : (
+          positions.map((position, index) => {
+            // Create both spot and perp versions for each position
+            const cards = [];
+            
+            // Add spot position (blue card with just token name)
+            cards.push(
+              <div
+                key={`${index}-spot`}
+                className="relative h-8 rounded-sm flex items-center justify-center text-white font-medium text-xs transition-all duration-200 hover:brightness-110 cursor-pointer bg-blue-400"
+              >
+                <span className="text-center font-semibold">
+                  {position.token}
+                </span>
+              </div>
+            );
+            
+            // Add perp position (green card with token-USD)
+            cards.push(
+              <div
+                key={`${index}-perp`}
+                className="relative h-8 rounded-sm flex items-center justify-center text-white font-medium text-xs transition-all duration-200 hover:brightness-110 cursor-pointer bg-green-500"
+              >
+                <span className="text-center font-semibold">
+                  {position.pair}
+                </span>
+              </div>
+            );
+            
+            return cards;
+          }).flat()
+        )}
       </div>
     </div>
   );

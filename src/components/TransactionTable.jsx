@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Transactions from "./Transactions";
 import Holdings from "./Holdings";
+import Perps from "./Perps";
 import Orders from "./Orders";
 import More from "./More";
 import Footer from "./Footer";
@@ -25,6 +26,8 @@ const TransactionTable = () => {
         return <Transactions />;
       case "HOLDINGS":
         return <Holdings />;
+      case "PERPS":
+        return <Perps />;
       case "ORDERS":
         return <Orders />;
       case "STAKING":

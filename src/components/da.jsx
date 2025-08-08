@@ -15988,6 +15988,7 @@
 ]
 
 // https://api.hyperliquid.xyz/info
+//used
 
 // payload : 
 // {type: "spotClearinghouseState", user: "0xc513fbdfdcb114719753f0950e2352a0e194e9ae"}
@@ -16061,6 +16062,7 @@
 }
 
 // https://api.hyperliquid.xyz/info
+//used
 
 // payload : 
 // {type: "clearinghouseState", user: "0xc513fbdfdcb114719753f0950e2352a0e194e9ae"}
@@ -52616,7 +52618,8 @@
     }
 ]
 
-// https://api.hyperliquid.xyz/info
+// https://api.hyperliquid.xyz/info 
+//Used
 
 // payload :
 // {type: "userTwapSliceFills", user: "0xc513fbdfdcb114719753f0950e2352a0e194e9ae"}
