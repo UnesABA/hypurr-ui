@@ -10,7 +10,7 @@ const Overview = () => {
       <AddressHeader />
 
       {/* Three Cards Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-[-14px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-[-14px]">
         <OverviewCard />
         <InfosCard />
         <PositionsCard />

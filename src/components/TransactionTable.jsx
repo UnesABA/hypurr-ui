@@ -41,7 +41,7 @@ const TransactionTable = () => {
   };
 
   return (
-    <div className="mx-12 my-8">
+    <div className="mx-12 my-4">
       {/* Tab Navigation */}
       <div className="bg-header-bg rounded-t-lg">
         <nav className="flex space-x-0">
@@ -49,7 +49,7 @@ const TransactionTable = () => {
             <div
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-2 text-[10px] tracking-wider font-medium cursor-pointer transition-all duration-200 border-b-2 
+              className={`px-3 py-2 text-[10px] tracking-wider font-medium cursor-pointer transition-all duration-200 border-b-2
           ${
             activeTab === tab
               ? "border-b-white brightness-125"

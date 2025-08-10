@@ -35,6 +35,13 @@ const Holdings = () => {
 
         const pricesData = await pricesResponse.json();
 
+        // Third API call - get rank data
+        const rankResponse = await fetch(`https://api.hypurrscan.io/rank/${walletAddress}`, {
+          method: "GET",
+        });
+
+        const rankData = await rankResponse.json();
+
         if (balancesData && balancesData.balances && pricesData) {
           const holdingsData = balancesData.balances.map((balance) => {
             const coin = balance.coin;
@@ -43,6 +50,9 @@ const Holdings = () => {
             
             // Find price for this token
             const price = parseFloat(pricesData[coin] || 1);
+            
+            // Get rank for this token
+            const rank = rankData && rankData[coin] ? rankData[coin] : 'N/A';
             
             // Calculate values
             const value = total * price;
@@ -69,9 +79,9 @@ const Holdings = () => {
             return {
               token: coin,
               value: formatCurrency(value),
-              amount: formatNumber(total),
+              amount: `${formatNumber(total)} ${coin}`,
               price: formatNumber(price) + '$',
-              rank: '-',
+              rank: rank,
               pnl: `${pnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(pnl))} (${formatPercent(pnlPercent)})`,
               pnlValue: pnl // for styling
             };
@@ -96,8 +106,8 @@ const Holdings = () => {
           <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
             Token
           </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center gap-2">
+          <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
+            <span className="flex items-end justify-end gap-2">
               <svg
                 className="w-3 h-3"
                 fill="currentColor"
@@ -112,13 +122,13 @@ const Holdings = () => {
               Value
             </span>
           </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
+          <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
             Amount
           </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
+          <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
             Price
           </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
+          <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
             Rank
           </th>
           <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
@@ -147,28 +157,28 @@ const Holdings = () => {
               key={index}
               className="transition-colors duration-150 border-b border-gray-700"
             >
-              <td className="py-2 px-3">
+              <td className="py-2 px-3 text-left">
                 <span className="text-white text-[11px] font-medium">
                   {holding.token}
                 </span>
               </td>
-              <td className="py-2 px-3">
+              <td className="py-2 px-3 text-right">
                 <span className="text-white text-[11px] font-semibold">
                   {holding.value}
                 </span>
               </td>
-              <td className="py-2 px-3">
-                <span className="text-gray-300 text-[11px]">
+              <td className="py-2 px-3 text-right">
+                <span className="text-white-400 text-[11px] font-semibold">
                   {holding.amount}
                 </span>
               </td>
-              <td className="py-2 px-3">
-                <span className="text-gray-300 text-[11px] font-mono">
+              <td className="py-2 px-3 text-right">
+                <span className="text-white-400 text-[11px] font-semibold font-mono">
                   {holding.price}
                 </span>
               </td>
-              <td className="py-2 px-3">
-                <span className="text-gray-400 text-[11px]">
+              <td className="py-2 px-3 text-right">
+                <span className="text-white-400 text-[11px] font-semibold">
                   {holding.rank}
                 </span>
               </td>
