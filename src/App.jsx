@@ -1,12 +1,12 @@
 import "./index.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
 import Overview from "./components/Overview";
 import TransactionTable from "./components/TransactionTable";
 
 function App() {
-  const walletAddress = "0xc513fbdfdcb114719753f0950e2352a0e194e9ae";
+  const [walletAddress, setWalletAddress] = useState("0xc513fbdfdcb114719753f0950e2352a0e194e9ae");
 
   useEffect(() => {
     const fetchHyperliquidData = async () => {
@@ -75,9 +75,9 @@ function App() {
   return (
     <div className="bg-body-bg text-white min-h-screen">
       <Header />
-      <SearchBar />
+      <SearchBar walletAddress={walletAddress} setWalletAddress={setWalletAddress} />
       <div className="flex flex-col">
-        <Overview />
+        <Overview walletAddress={walletAddress} />
         <TransactionTable />
       </div>
     </div>

@@ -60,9 +60,9 @@ const PositionsCard = () => {
           <div className="text-gray-400 text-sm">No positions available</div>
         ) : (
           positions.map((position, index) => (
-            <div key={index} className="flex flex-col gap-2 space-y-0">
+            <div key={index} className="flex flex-col gap-1.5 space-y-0">
               {/* Spot position (blue card with just token name) */}
-              <div className="relative h-8 rounded-sm flex items-center justify-center text-black text-[10px] transition-transform duration-200 hover:-translate-y-[2px] cursor-pointer bg-blue-300">
+              <div className="relative h-7 rounded-sm flex items-center justify-center text-black text-[10px] transition-transform duration-200 hover:-translate-y-[2px] cursor-pointer bg-blue-300">
                 <span className="text-center font-semibold">
                   {position.token}
                 </span>
@@ -72,7 +72,7 @@ const PositionsCard = () => {
               <div className="h-[1px] bg-gray-500 opacity-50 w-full"></div>
               
               {/* Perp position (green card with token-USD) */}
-              <div className="relative h-8 rounded-sm flex items-center justify-center text-white text-[10px] transition-transform duration-200 hover:-translate-y-[2px] cursor-pointer bg-green-500">
+              <div className="relative h-7 rounded-sm flex items-center justify-center text-white text-[10px] transition-transform duration-200 hover:-translate-y-[2px] cursor-pointer bg-green-500">
                 <span className="text-center font-semibold">
                   {position.pair}
                 </span>
