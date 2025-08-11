@@ -14,7 +14,7 @@ const Transactions = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            type: "userNonFundingLedgerUpdates",
+            type: "frontendOpenOrders",
             user: walletAddress,
           }),
         });
@@ -22,44 +22,37 @@ const Transactions = () => {
         const data = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.slice(0, 10).map((entry) => {
-            const { delta, hash, time } = entry;
+          const mapped = data.slice(0, 10).map((order) => {
+            // Destructure directly from order (not order.order)
+            const { coin, limitPx, origSz, orderType, timestamp } = order;
 
-            const now = Date.now();
-            const ageInHours = Math.floor((now - time) / (1000 * 60 * 60));
-            const age = `${ageInHours} hours ago`;
+            // Calculate age from timestamp (minutes only)
+            const minutesAgo = Math.floor((Date.now() - timestamp) / 60000);
+            const age = `${minutesAgo} minutes ago`;
 
-            const shortHash = hash ? `${hash.slice(0, 10)}...` : "unknown...";
+            // Token from coin (direct from order)
+            const token = coin || "UNKNOWN";
 
-            const to =
-              delta.user === walletAddress || delta.destination === walletAddress
-                ? "Self"
-                : "Other";
+            // Price from limitPx with $ appended
+            const price = `${parseFloat(limitPx || 0)}$`;
 
-            const rawAmount = parseFloat(delta.usdc || delta.amount || 0);
-            const amount = `+${rawAmount.toFixed(2)}`;
+            // Amount from origSz (direct from order)
+            const amount = origSz || "0";
 
-            const token =
-              delta.usdc !== undefined
-                ? "USDC"
-                : delta.token || "UNKNOWN";
+            // To from orderType (direct from order)
+            const to = orderType || "Unknown";
 
-            const usdcValue = parseFloat(delta.usdcValue || delta.usdc || 0);
-            const value = `${usdcValue.toFixed(2)}$`;
-
-            let price = "1$";
-            if (delta.usdcValue && delta.amount) {
-              const amt = parseFloat(delta.amount);
-              if (amt !== 0) {
-                price = (parseFloat(delta.usdcValue) / amt).toFixed(0);
-              }
-            }
+            // Keep other values unchanged
+            const hash = order.oid ? `${order.oid.toString().slice(0, 10)}...` : "unknown...";
+            const method = "Order";
+            const from = "Arbitrum";
+            const value = "0.00$";
 
             return {
-              hash: shortHash,
-              method: delta.type || "Unknown",
+              hash,
+              method,
               age,
-              from: "Arbitrum",
+              from,
               to,
               amount,
               token,
@@ -93,7 +86,7 @@ const Transactions = () => {
             </span>
           </th>
           <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start gap-2">
+            <span className="flex items-start justify-start gap-2">
               Age <FaFilter />
             </span>
           </th>
@@ -103,25 +96,27 @@ const Transactions = () => {
             </span>
           </th>
           <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start gap-2">
+            <span className="flex items-start justify-start gap-2">
               To <FaFilter />
             </span>
           </th>
           <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start gap-2">
+            <span className="flex items-start justify-start gap-2">
               Amount <FaFilter />
             </span>
           </th>
           <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start gap-2">
+            <span className="flex items-start justify-start gap-2">
               Token <FaFilter />
             </span>
           </th>
           <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            Price
+            <span className="flex items-start justify-start">
+              Price
+            </span>
           </th>
           <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start gap-2">
+            <span className="flex items-center justify-end gap-2">
               $ <FaFilter />
             </span>
           </th>
@@ -145,8 +140,10 @@ const Transactions = () => {
                 {tx.method}
               </span>
             </td>
-            <td className="py-2 px-3 text-gray-300 text-[11px]">
-              {tx.age}
+            <td className="py-2 px-3">
+              <span className="text-gray-300 text-[11px] flex items-start">
+                {tx.age}
+              </span>
             </td>
             <td className="py-2 px-3">
               <span className="text-teal-400 text-[11px] underline hover:text-teal-300 cursor-pointer">
@@ -154,31 +151,31 @@ const Transactions = () => {
               </span>
             </td>
             <td className="py-2 px-3">
-              <span className="text-red-400 text-[11px] font-medium">
+              <span className="text-white-400 text-[11px] font-medium flex items-start">
                 {tx.to}
               </span>
             </td>
             <td className="py-2 px-3">
               <span
-                className={`text-[11px] font-semibold ${
-                  tx.amount.startsWith("+")
-                    ? "text-green-400"
-                    : "text-red-400"
-                }`}
+                className={`text-[11px] font-semibold flex items-start`}
               >
                 {tx.amount}
               </span>
             </td>
             <td className="py-2 px-3">
-              <span className="text-white text-[11px] font-medium">
+              <span className="text-white text-[11px] font-medium flex items-start">
                 {tx.token}
               </span>
             </td>
-            <td className="py-2 px-3 text-gray-300 text-[11px] font-mono">
-              {tx.price}
+            <td className="py-2 px-3">
+              <span className="text-gray-300 text-[11px] font-mono flex items-start">
+                {tx.price}
+              </span>
             </td>
-            <td className="py-2 px-3 text-white text-[11px] font-semibold">
-              {tx.value}
+            <td className="py-2 px-3 text-right">
+              <span className="text-white text-[11px] font-semibold">
+                {tx.value}
+              </span>
             </td>
           </tr>
         ))}

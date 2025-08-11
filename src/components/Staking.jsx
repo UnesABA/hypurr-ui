@@ -32,13 +32,20 @@ const Staking = () => {
 
         if (data) {
           const formatNumber = (num) => {
-            return parseFloat(num || 0).toFixed(2);
+            return new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }).format(parseFloat(num || 0));
+          };
+
+          const formatHypeAmount = (num) => {
+            return `${formatNumber(num)} HYPE`;
           };
 
           setStakingData({
-            staked: formatNumber(data.delegated),
-            pendingWithdrawal: formatNumber(data.totalPendingWithdrawal),
-            stakingBalance: "0.00", // Hardcoded as requested
+            staked: formatHypeAmount(data.delegated || 0),
+            pendingWithdrawal: `${formatHypeAmount(data.totalPendingWithdrawal || 0)} (${data.count || 0})`,
+            stakingBalance: "0.00 HYPE", // Hardcoded as requested
             fromRewards: "467.08" // Hardcoded as requested
           });
         }
@@ -63,7 +70,7 @@ const Staking = () => {
           <div className="flex justify-between items-start">
             <div className="text-left">
               <div className="text-white text-sm font-medium">
-                Staked: {stakingData.staked}$
+                Staked: {stakingData.staked}
               </div>
               <div className="text-gray-400 text-xs mt-0.5">
                 from rewards: {stakingData.fromRewards}
@@ -76,7 +83,7 @@ const Staking = () => {
             </div>
             <div className="text-right">
               <div className="text-white text-sm font-medium">
-                Pending withdrawal: {stakingData.pendingWithdrawal} (0)
+                Pending withdrawal: {stakingData.pendingWithdrawal}
               </div>
             </div>
           </div>

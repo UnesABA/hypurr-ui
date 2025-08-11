@@ -8,7 +8,7 @@ const Holdings = () => {
   useEffect(() => {
     const fetchHoldingsData = async () => {
       try {
-        // First API call - get balances
+        // First API call - get spot balances
         const balancesResponse = await fetch("https://api.hyperliquid.xyz/info", {
           method: "POST",
           headers: {
@@ -36,56 +36,62 @@ const Holdings = () => {
         const pricesData = await pricesResponse.json();
 
         // Third API call - get rank data
-        const rankResponse = await fetch(`https://api.hypurrscan.io/rank/${walletAddress}`, {
-          method: "GET",
-        });
-
-        const rankData = await rankResponse.json();
+        let rankData = {};
+        try {
+          const rankResponse = await fetch(`https://api.hypurrscan.io/rank/${walletAddress}`, {
+            method: "GET",
+          });
+          rankData = await rankResponse.json();
+        } catch (rankError) {
+          console.warn("Could not fetch rank data:", rankError);
+        }
 
         if (balancesData && balancesData.balances && pricesData) {
-          const holdingsData = balancesData.balances.map((balance) => {
-            const coin = balance.coin;
-            const total = parseFloat(balance.total);
-            const entryNtl = parseFloat(balance.entryNtl || 0);
-            
-            // Find price for this token
-            const price = parseFloat(pricesData[coin] || 1);
-            
-            // Get rank for this token
-            const rank = rankData && rankData[coin] ? rankData[coin] : 'N/A';
-            
-            // Calculate values
-            const value = total * price;
-            const pnl = value - entryNtl;
-            const pnlPercent = entryNtl !== 0 ? (pnl / entryNtl) * 100 : 0;
-            
-            // Format numbers
-            const formatNumber = (num) => {
-              return new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              }).format(num);
-            };
-            
-            const formatCurrency = (num) => {
-              return formatNumber(num) + '$';
-            };
-            
-            const formatPercent = (num) => {
-              const sign = num >= 0 ? '+' : '';
-              return sign + formatNumber(num) + '%';
-            };
-            
-            return {
-              token: coin,
-              value: formatCurrency(value),
-              amount: `${formatNumber(total)} ${coin}`,
-              price: formatNumber(price) + '$',
-              rank: rank,
-              pnl: `${pnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(pnl))} (${formatPercent(pnlPercent)})`,
-              pnlValue: pnl // for styling
-            };
-          });
+          const holdingsData = balancesData.balances
+            .filter(balance => parseFloat(balance.total) > 0) // Only show non-zero balances
+            .map((balance) => {
+              const coin = balance.coin;
+              const total = parseFloat(balance.total);
+              const entryNtl = parseFloat(balance.entryNtl || 0);
+              
+              // Find price for this token
+              const price = parseFloat(pricesData[coin] || 1);
+              
+              // Get rank for this token
+              const rank = rankData && rankData[coin] ? rankData[coin] : 'N/A';
+              
+              // Calculate values
+              const value = total * price;
+              const pnl = value - entryNtl;
+              const pnlPercent = entryNtl !== 0 ? (pnl / entryNtl) * 100 : 0;
+              
+              // Format numbers with commas
+              const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                }).format(num);
+              };
+              
+              const formatCurrency = (num) => {
+                return `$${formatNumber(num)}`;
+              };
+              
+              const formatPercent = (num) => {
+                const sign = num >= 0 ? '+' : '';
+                return `${sign}${formatNumber(Math.abs(num))}%`;
+              };
+              
+              return {
+                token: coin,
+                value: formatCurrency(value),
+                amount: `${formatNumber(total)} ${coin}`,
+                price: `$${formatNumber(price)}`,
+                rank: rank,
+                pnl: `${pnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(pnl))} (${formatPercent(pnlPercent)})`,
+                pnlValue: pnl // for styling
+              };
+            });
           
           setHoldings(holdingsData);
         }

@@ -8,6 +8,7 @@ const Perps = () => {
   useEffect(() => {
     const fetchPerpsData = async () => {
       try {
+        // Fetch positions data
         const response = await fetch("https://api.hyperliquid.xyz/info", {
           method: "POST",
           headers: {
@@ -21,13 +22,31 @@ const Perps = () => {
 
         const data = await response.json();
 
+        // Fetch current prices
+        const pricesResponse = await fetch("https://api.hyperliquid.xyz/info", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "allMids",
+          }),
+        });
+
+        const pricesData = await pricesResponse.json();
+
         if (data && data.assetPositions) {
           const perpsData = data.assetPositions.map((position) => {
             const szi = parseFloat(position.position.szi);
             const side = szi > 0 ? "LONG" : "SHORT";
-            const leverage = `${position.position.leverage.value}X (${position.position.leverage.type})`;
+            const leverage = `${position.position.leverage.value}X (cross)`;
 
-            // Format numbers
+            // Get current price for this token
+            const currentPrice = parseFloat(
+              pricesData[position.position.coin] || position.position.entryPx
+            );
+
+            // Format numbers with commas
             const formatNumber = (num) => {
               return new Intl.NumberFormat("en-US", {
                 minimumFractionDigits: 2,
@@ -36,7 +55,7 @@ const Perps = () => {
             };
 
             const formatCurrency = (num) => {
-              return formatNumber(num) + "$";
+              return `$${formatNumber(num)}`;
             };
 
             return {
@@ -48,9 +67,9 @@ const Perps = () => {
               ),
               amount: `${formatNumber(Math.abs(szi))} ${
                 position.position.coin
-              }-USD`,
+              }`,
               entry: formatCurrency(parseFloat(position.position.entryPx)),
-              price: "41.367$", // Hardcoded for now as requested
+              price: formatCurrency(currentPrice),
               pnl: `${
                 parseFloat(position.position.unrealizedPnl) >= 0 ? "+" : ""
               }${formatCurrency(parseFloat(position.position.unrealizedPnl))}`,
