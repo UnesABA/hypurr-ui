@@ -8,7 +8,8 @@ const Transactions = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await fetch("https://api.hyperliquid.xyz/info", {
+        // Fetch orders data from frontendOpenOrders (Token, Price, Amount, To, Age)
+        const ordersResponse = await fetch("https://api-ui.hyperliquid.xyz/info", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -19,45 +20,98 @@ const Transactions = () => {
           }),
         });
 
-        const data = await response.json();
+        const ordersData = await ordersResponse.json();
 
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.slice(0, 10).map((order) => {
-            // Destructure directly from order (not order.order)
+        // Fetch explorer data (for Hash, time and action)
+        let explorerTxs = [];
+        try {
+          const explorerResponse = await fetch("https://rpc.hyperliquid.xyz/explorer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: "userDetails",
+              user: walletAddress,
+              n: 50,
+            }),
+          });
+
+          if (explorerResponse.ok) {
+            const explorerJson = await explorerResponse.json();
+            if (explorerJson.txs && Array.isArray(explorerJson.txs)) {
+              explorerTxs = explorerJson.txs;
+            }
+          }
+        } catch (e) {
+          console.warn("Explorer fetch failed:", e);
+        }
+
+        // Helper: format timestamp to relative time ago string
+        const formatTimeAgo = (timestamp) => {
+          if (!timestamp) return "N/A";
+
+          const now = Date.now();
+          const diffMs = now - timestamp;
+
+          if (diffMs < 0) return "Just now";
+
+          const seconds = Math.floor(diffMs / 1000);
+          if (seconds < 60) return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+
+          const minutes = Math.floor(diffMs / 60000);
+          if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+
+          const hours = Math.floor(diffMs / 3600000);
+          if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+
+          const days = Math.floor(diffMs / 86400000);
+          return `${days} day${days !== 1 ? "s" : ""} ago`;
+        };
+
+        if (Array.isArray(ordersData) && ordersData.length > 0) {
+          const mapped = ordersData.slice(0, 10).map((order, index) => {
             const { coin, limitPx, origSz, orderType, timestamp } = order;
 
-            // Calculate age from timestamp (minutes only)
-            const minutesAgo = Math.floor((Date.now() - timestamp) / 60000);
-            const age = `${minutesAgo} minutes ago`;
+            // Token
+            const token = coin || "N/A";
 
-            // Token from coin (direct from order)
-            const token = coin || "UNKNOWN";
+            // Price
+            const priceValue = parseFloat(limitPx || 0);
+            let price;
+            if (priceValue >= 1) price = `${priceValue.toFixed(3)}$`;
+            else price = `${priceValue.toFixed(4)}$`;
 
-            // Price from limitPx with $ appended
-            const price = `${parseFloat(limitPx || 0)}$`;
+            // Amount
+            const amount = origSz
+              ? new Intl.NumberFormat("en-US").format(parseFloat(origSz))
+              : "N/A";
 
-            // Amount from origSz (direct from order)
-            const amount = origSz || "0";
+            // To
+            const to = orderType || "N/A";
 
-            // To from orderType (direct from order)
-            const to = orderType || "Unknown";
-
-            // Keep other values unchanged
-            const hash = order.oid ? `${order.oid.toString().slice(0, 10)}...` : "unknown...";
-            const method = "Order";
-            const from = "Arbitrum";
-            const value = "0.00$";
+            // Explorer hash, time and action
+            const explorerTx = explorerTxs[index];
+            const hashData = explorerTx
+              ? {
+                  short: explorerTx.hash ? `${explorerTx.hash.slice(0, 10)}...` : "N/A",
+                  full: explorerTx.hash || "",
+                  time: explorerTx.time,
+                  method: explorerTx.action?.type || "N/A",
+                }
+              : { short: "N/A", full: "", time: null, method: "N/A" };
 
             return {
-              hash,
-              method,
-              age,
-              from,
+              hash: hashData.short,
+              fullHash: hashData.full,
+              method: hashData.method,
+              age: formatTimeAgo(hashData.time),
+              from: "Arbitrum",
               to,
               amount,
               token,
               price,
-              value,
+              value: "$0.00",
               status: "success",
             };
           });
@@ -69,114 +123,55 @@ const Transactions = () => {
       }
     };
 
+    // Initial fetch
     fetchTransactions();
+
+    // Set up polling to fetch data every 10 seconds
+    const intervalId = setInterval(fetchTransactions, 10000);
+
+    // Cleanup function to clear the interval when component unmounts
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   return (
     <>
       {/* Table Header */}
-      <thead className="w-[10px] bg-[#1f1f1f] sticky top-0">
+      <thead className="bg-[#1f1f1f] sticky top-0">
         <tr className="border-b border-slate-700">
-          <th className="flex items-start text-left py-2 px-3 text-white font-semibold text-[11px]">
-            Hash
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start">
-              Method <FaFilter className="bg-body-bg rounded-full" />
-            </span>
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-start justify-start gap-2">
-              Age <FaFilter />
-            </span>
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-start gap-2">
-              From <FaFilter />
-            </span>
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-start justify-start gap-2">
-              To <FaFilter />
-            </span>
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-start justify-start gap-2">
-              Amount <FaFilter />
-            </span>
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-start justify-start gap-2">
-              Token <FaFilter />
-            </span>
-          </th>
-          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-start justify-start">
-              Price
-            </span>
-          </th>
-          <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">
-            <span className="flex items-center justify-end gap-2">
-              $ <FaFilter />
-            </span>
-          </th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">Hash</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">Method</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">Age</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">From</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">To</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">Amount</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">Token</th>
+          <th className="text-left py-2 px-3 text-white font-semibold text-[11px]">Price</th>
+          <th className="text-right py-2 px-3 text-white font-semibold text-[11px]">$</th>
         </tr>
       </thead>
 
       {/* Table Body */}
       <tbody>
-        {transactions.map((tx, index) => (
-          <tr
-            key={index}
-            className="transition-colors duration-150 border-b border-gray-700"
-          >
+        {transactions.map((tx, i) => (
+          <tr key={i} className="border-b border-gray-700">
             <td className="py-2 px-3">
-              <span className="text-teal-400 font-mono text-[10px] underline hover:text-teal-300 cursor-pointer">
+              <span
+                className="text-teal-400 font-mono text-[10px] underline hover:text-teal-300 cursor-pointer"
+                title={tx.fullHash}
+              >
                 {tx.hash}
               </span>
             </td>
-            <td className="py-2 px-3">
-              <span className="text-white text-[11px] font-medium rounded-full">
-                {tx.method}
-              </span>
-            </td>
-            <td className="py-2 px-3">
-              <span className="text-gray-300 text-[11px] flex items-start">
-                {tx.age}
-              </span>
-            </td>
-            <td className="py-2 px-3">
-              <span className="text-teal-400 text-[11px] underline hover:text-teal-300 cursor-pointer">
-                {tx.from}
-              </span>
-            </td>
-            <td className="py-2 px-3">
-              <span className="text-white-400 text-[11px] font-medium flex items-start">
-                {tx.to}
-              </span>
-            </td>
-            <td className="py-2 px-3">
-              <span
-                className={`text-[11px] font-semibold flex items-start`}
-              >
-                {tx.amount}
-              </span>
-            </td>
-            <td className="py-2 px-3">
-              <span className="text-white text-[11px] font-medium flex items-start">
-                {tx.token}
-              </span>
-            </td>
-            <td className="py-2 px-3">
-              <span className="text-gray-300 text-[11px] font-mono flex items-start">
-                {tx.price}
-              </span>
-            </td>
-            <td className="py-2 px-3 text-right">
-              <span className="text-white text-[11px] font-semibold">
-                {tx.value}
-              </span>
-            </td>
+            <td className="py-2 px-3 text-[11px]">{tx.method}</td>
+            <td className="py-2 px-3 text-[11px]">{tx.age}</td>
+            <td className="py-2 px-3 text-[11px]">{tx.from}</td>
+            <td className="py-2 px-3 text-[11px]">{tx.to}</td>
+            <td className="py-2 px-3 text-[11px]">{tx.amount}</td>
+            <td className="py-2 px-3 text-[11px]">{tx.token}</td>
+            <td className="py-2 px-3 text-[11px]">{tx.price}</td>
+            <td className="py-2 px-3 text-[11px] text-right">{tx.value}</td>
           </tr>
         ))}
       </tbody>

@@ -21,24 +21,24 @@ const TransactionTable = () => {
   ];
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case "TRANSACTION":
-        return <Transactions />;
-      case "HOLDINGS":
-        return <Holdings />;
-      case "PERPS":
-        return <Perps />;
-      case "ORDERS":
-        return <Orders />;
-      case "STAKING":
-        return <Staking />;
-      case "MORE":
-        return <More />;
-      case "TRANSACTIONS":
-      default:
-        return <Transactions />;
-    }
-  };
+  switch (activeTab) {
+    case "TRANSACTIONS":
+      return <Transactions />;
+    case "HOLDINGS":
+      return <Holdings />;
+    case "PERPS":
+      return <Perps />;
+    case "ORDERS":
+      return <Orders />;
+    case "STAKING":
+      return <Staking />;
+    case "MORE":
+      return <More />;
+    default:
+      return <Transactions />;
+  }
+};
+
 
   return (
     <div className="mx-12 my-4">
