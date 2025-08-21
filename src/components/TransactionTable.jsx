@@ -3,6 +3,7 @@ import Transactions from "./Transactions";
 import Holdings from "./Holdings";
 import Perps from "./Perps";
 import Orders from "./Orders";
+import Vaults from "./Vaults";
 import More from "./More";
 import Footer from "./Footer";
 import Staking from "./Staking";
@@ -21,35 +22,37 @@ const TransactionTable = () => {
   ];
 
   const renderTabContent = () => {
-  switch (activeTab) {
-    case "TRANSACTIONS":
-      return <Transactions />;
-    case "HOLDINGS":
-      return <Holdings />;
-    case "PERPS":
-      return <Perps />;
-    case "ORDERS":
-      return <Orders />;
-    case "STAKING":
-      return <Staking />;
-    case "MORE":
-      return <More />;
-    default:
-      return <Transactions />;
-  }
-};
+    switch (activeTab) {
+      case "TRANSACTIONS":
+        return <Transactions />;
+      case "HOLDINGS":
+        return <Holdings />;
+      case "PERPS":
+        return <Perps />;
+      case "ORDERS":
+        return <Orders />;
+      case "VAULTS":
+        return <Vaults />;
+      case "STAKING":
+        return <Staking />;
+      case "MORE":
+        return <More />;
+      default:
+        return <Transactions />;
+    }
+  };
 
 
   return (
     <div className="mx-12 my-4">
       {/* Tab Navigation */}
-      <div className="bg-header-bg rounded-t-lg">
+      <div className={`bg-header-bg ${activeTab === "TRANSACTIONS" ? "rounded-t-lg" : "rounded-t-lg"}`}>
         <nav className="flex space-x-0">
           {tabs.map((tab) => (
             <div
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-2 text-[10px] tracking-wider font-medium cursor-pointer transition-all duration-200 border-b-2
+              className={`px-3.5 py-2.5 text-[10px] tracking-wider font-medium cursor-pointer transition-all duration-200 border-b-2
           ${
             activeTab === tab
               ? "border-b-white brightness-125"
@@ -63,7 +66,7 @@ const TransactionTable = () => {
       </div>
 
       {/* Table */}
-      <div className="mx-3 my-3 overflow-x-auto rounded-[10px]">
+      <div className={`mx-3 my-3 overflow-x-auto ${activeTab === "TRANSACTIONS" ? "rounded-[10px]" : "rounded-[10px] rounded-b-lg"}`}>
         <div className="max-h-[400px] overflow-y-auto">
           <table className="w-full bg-[#171b1a] min-w-full">
             {renderTabContent()}
@@ -71,8 +74,8 @@ const TransactionTable = () => {
         </div>
       </div>
 
-      {/* Footer with pagination */}
-      <Footer activeTab={activeTab} />
+      {/* Footer with pagination - only show on Transactions tab */}
+      {activeTab === "TRANSACTIONS" && <Footer activeTab={activeTab} />}
     </div>
   );
 };

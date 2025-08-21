@@ -58,17 +58,22 @@ const Transactions = () => {
             const price = order?.p ? `${parseFloat(order.p)}$` : "0$";
             const value = amount && order?.p ? `${(amount * parseFloat(order.p)).toLocaleString()}$` : "$0";
 
+            // Determine if this is a buy (B) or sell (S) transaction
+            // For sells, we want to show negative amounts
+            const isBuy = order?.b === true;
+            const side = isBuy ? "B" : "S";
+            
             return {
               hash,
               method,
               age,
               from,
               to,
-              amount,
+              amount: Math.abs(amount), // Store absolute value, we'll add minus sign in display
               token,
               price,
               value,
-              side: order?.b ? "B" : "S",
+              side,
               originalIndex: index,
             };
           })
@@ -97,7 +102,7 @@ const Transactions = () => {
           </th>
           <th className="py-2 px-3 text-white text-[11px] font-semibold">
             <div className="flex items-center gap-1">
-              Method <FaFilter />
+              Method <FaFilter className="text-lg bg-green-800 rounded-full p-[0.5px]"/>
             </div>
           </th>
           <th className="py-2 px-3 text-white text-[11px] font-semibold">
@@ -122,7 +127,7 @@ const Transactions = () => {
           </th>
           <th className="py-2 px-3 text-white text-[11px] font-semibold">
             <div className="flex items-center gap-1">
-              Token <FaFilter />
+              Token <FaFilter className="text-lg bg-green-800 rounded-full p-[0.5px]"/>
             </div>
           </th>
           <th className="py-2 px-3 text-white text-[11px] font-semibold">
@@ -152,13 +157,13 @@ const Transactions = () => {
         ) : (
           transactions.map((tx, index) => (
             <tr key={`${tx.hash}-${index}`} className="transition-colors duration-150 border-b border-gray-700">
-              <td className="py-2 px-3 text-teal-400 font-mono text-[10px] underline hover:text-teal-300">{tx.hash}</td>
-              <td className="py-2 px-3 text-white text-[11px] font-medium">{tx.method}</td>
-              <td className="py-2 px-3 text-gray-300 text-[11px]">{tx.age}</td>
-              <td className="py-2 px-3 text-teal-400 text-[11px] font-mono">{tx.from}</td>
-              <td className="py-2 px-3 text-white text-[11px] font-mono">{tx.to}</td>
-              <td className={`py-2 px-3 text-[11px] font-semibold ${tx.side === "B" ? "text-green-500" : "text-red-500"}`}>
-                {tx.amount.toLocaleString()}
+              <td className="py-3 px-3 text-teal-400 font-mono text-[11px] underline hover:text-teal-300">{tx.hash}</td>
+              <td className="py-3 px-3 text-white text-[11px] font-medium">{tx.method}</td>
+              <td className="py-3 px-3 text-gray-300 text-[11px]">{tx.age}</td>
+              <td className="py-3 px-3 text-teal-400 text-[11px] font-mono">{tx.from}</td>
+              <td className="py-3 px-3 text-white text-[11px] font-mono">{tx.to}</td>
+              <td className={`py-3 px-3 text-[11px] font-semibold ${tx.side === "B" ? "text-green-500" : "text-red-500"}`}>
+                {tx.side === "S" ? `-${Math.abs(tx.amount).toLocaleString()}` : tx.amount.toLocaleString()}
               </td>
               <td className="py-2 px-3 text-white text-[11px] font-medium">{tx.token}</td>
               <td className="py-2 px-3 text-gray-300 text-[11px] font-mono">{tx.price}</td>
@@ -168,6 +173,7 @@ const Transactions = () => {
         )}
       </tbody>
     </table>
+    
   );
 };
 

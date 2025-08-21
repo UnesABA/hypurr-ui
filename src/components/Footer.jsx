@@ -6,14 +6,9 @@ import LastPageIcon from "@mui/icons-material/LastPage";
 
 const Footer = ({ activeTab }) => {
   const getPaginationText = () => {
-    switch (activeTab) {
-      case "HOLDINGS":
-        return "0 to 0 of 0";
-      case "ORDERS":
-        return "1-13 of 13";
-      default:
-        return "1-25 of 4058";
-    }
+    // Since Footer is now only shown on TRANSACTIONS tab, 
+    // we can simplify this to always show transaction pagination
+    return "1-25 of 4058";
   };
 
   return (
